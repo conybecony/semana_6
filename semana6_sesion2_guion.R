@@ -279,7 +279,7 @@ c(con_888 = mean(horas, na.rm = TRUE),
 # 🔮 PREDICE: el 999 movió el promedio 0,2 horas. ¿Ya está limpio? ____________
 
 # 🟢 TU TURNO: no mires solo el máximo. Mira TODA la cola alta, ordenada por frecuencia.
-sort(table(empleo$habituales[empleo$habituales > ____]), decreasing = TRUE)
+sort(table(empleo$habituales[empleo$habituales > 888]), decreasing = TRUE)
 
 # ✅ Deberías ver que 999 aparece 8 veces... y 888 aparece 103.
 #
@@ -291,6 +291,10 @@ sort(table(empleo$habituales[empleo$habituales > ____]), decreasing = TRUE)
 #    La documentación de la encuesta dice qué significa cada uno. Leerla es
 #    parte del trabajo.
 
+#' la comilla para seguir comentando
+#'
+#'
+#'
 
 # -----------------------------------------------------------------------------
 # BLOQUE F — Una fila no vale una persona
@@ -298,16 +302,23 @@ sort(table(empleo$habituales[empleo$habituales > ____]), decreasing = TRUE)
 # La ENE es una MUESTRA. fact_cal dice cuántos chilenos representa cada fila.
 head(empleo$fact_cal, 3)
 
+# factor de expansion es un factor calculado, es cuanto porcentaje esta representando esa persona al grupo
+
+
 # ✅ Deberías ver: 1079.26  80.72  94.99  <- la primera fila vale por 1.079 personas
 
 # ✏️ COMPLETA: la tasa de desocupación, contando PERSONAS y no filas.
 #    Definición: desocupados / (ocupados + desocupados)
-ocupados    <- sum(empleo$fact_cal[empleo$activ == ____], na.rm = TRUE)
-desocupados <- sum(empleo$fact_cal[empleo$activ == ____], na.rm = TRUE)
-round(100 * desocupados / (ocupados + desocupados), 2)
+ocupados    <- sum(empleo$fact_cal[empleo$activ == 1], na.rm = TRUE)
+sum(empleo$activ[empleo$activ == 1], na.rm = TRUE)
+desocupados <- sum(empleo$fact_cal[empleo$activ == 2], na.rm = TRUE)
+sum(empleo$fact_cal[empleo$activ == 2], na.rm = TRUE)
+round(100 * desocupados / (ocupados + desocupados), 2) #tasa de desocupación
+# los 41850 esta representando a 9314017 personas.
 
 # ✅ Deberías ver: 9.53
-#
+# es la tasa de desocupación real
+
 # 💡 Ese es el número que sale en la prensa, y acabas de calcularlo desde el
 #    archivo crudo.
 

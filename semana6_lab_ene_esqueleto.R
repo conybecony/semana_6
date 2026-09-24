@@ -2,7 +2,7 @@
 # Laboratorio Semana 6 — El ciclo completo con datos reales del INE
 # Fundamentos de Programación para Análisis Económico · UdeC-EAN
 #
-# Autor: [TU NOMBRE]   |   Fecha: [FECHA]
+# Autor: Constanza Pinilla   |   Fecha: Septiembre 2026
 #
 # Objetivo: tomar un archivo público tal como lo publica el INE y llegar hasta
 #           la tasa de desocupación de tu región. Nadie preparó estos datos
@@ -57,7 +57,7 @@ ncol(intento)
 #    primeras líneas. Te ahorra media hora de depuración.
 
 # TODO: usa la variante europea (separador ";" y decimales con coma).
-ene <- ____("data/raw/ene-2026-06-mjj.csv")
+ene <- read.csv2("data/raw/ene-2026-06-mjj.csv")
 
 dim(ene)
 
@@ -95,6 +95,7 @@ ncol(select(ene, where(is.numeric)))
 which(names(ene) == "activ")
 table(activ = ene$activ, tiene_b1 = !is.na(ene$b1), useNA = "ifany")
 
+# b1 es grupo de ocupación según CIUO-08
 # ✅ Deberías ver: 221, y que b1 solo existe cuando activ == 1.
 #
 # 📖 Y sobre el tiempo: mes_central (siempre 6 = trimestre mayo-julio) dice
@@ -113,7 +114,7 @@ table(activ = ene$activ, tiene_b1 = !is.na(ene$b1), useNA = "ifany")
 #    tasa de una región chica si la calculas con un solo mes.
 #
 # TODO: quédate solo con esas seis.
-empleo <- select(ene, ____, ____, ____, ____, ____, ____)
+empleo <- select(ene, region, sexo, edad, activ, habituales, fact_cal)
 
 dim(empleo)
 
@@ -130,11 +131,11 @@ empleo <- empleo |>
   mutate(
     sexo_txt = case_when(
       sexo == 1 ~ "Hombre",
-      sexo == 2 ~ "____"
+      sexo == 2 ~ "Mujer"
     ),
     situacion = case_when(
       activ == 1 ~ "Ocupado",
-      activ == 2 ~ "____",
+      activ == 2 ~ "Desocupado",
       activ == 3 ~ "Inactivo",
       TRUE       ~ "Fuera de edad de trabajar"    # el resto: ¿quiénes son?
     )
@@ -153,6 +154,7 @@ table(empleo$situacion)
 # averigua quiénes son.
 
 summary(empleo$edad[is.na(empleo$activ)])
+# resumen de la edad de los que tienen na en la actividad, que son 1, 2 y 3.
 
 # ✅ Deberías ver: máximo 14 años.
 #
@@ -176,14 +178,42 @@ sum(is.na(empleo$habituales))
 # PASO 6 — El faltante disfrazado de número
 # -----------------------------------------------------------------------------
 summary(empleo$habituales)
+# ¿Cuántas personas hay en la columna habituales con 888?
+sum(empleo$habituales == 888, na.rm = TRUE)
+sum(empleo$habituales == 999, na.rm = TRUE)
 
-# 🔮 PREDICE: mira el MÁXIMO. ¿Es un dato posible? ____________
+# 🔮 PREDICE: mira el MÁXIMO. ¿Es un dato posible? no
 #
 # La semana tiene 168 horas. Un 999 no es una jornada: es un CÓDIGO que la
 # encuesta usa para "no responde". is.na() no lo detecta y mean() lo promedia.
 
 # TODO: mira TODA la cola alta, no solo el máximo.
 sort(table(empleo$habituales[empleo$habituales > 80]), decreasing = TRUE)
+# cuantas veces se repite un valos con table, sort de mayor a menor
+
+sort(table(empleo$habituales[empleo$habituales > 80 & empleo$habituales !=888
+                             & empleo$habituales !=999 ]), decreasing = TRUE)
+
+empleo |> 
+  filter(
+    habituales > 80,
+    habituales != 888, 
+    habituales != 999) |> 
+  group_by(habituales) |> 
+  summarise(
+    N = n()) |> 
+  arrange(desc(N))
+ 
+
+ empleo |> 
+  filter(
+    habituales > 80,
+    !(habituales %in% c(888,999))) |> 
+  group_by(habituales) |> 
+  summarise(
+    N = n()) |> 
+  arrange(desc(N))
+  
 
 # ✅ Deberías ver que 999 aparece 8 veces... pero 888 aparece 103.
 #    Hay DOS centinelas, y el segundo es el que más pesa.
@@ -192,9 +222,18 @@ sort(table(empleo$habituales[empleo$habituales > 80]), decreasing = TRUE)
 #    sigue estando mal. Mira la diferencia:
 
 oc <- empleo$habituales[empleo$situacion == "Ocupado"]
+
+oc <- 
+  empleo |> 
+  filter(situacion == "Ocupado") |> 
+  select(habituales) |> pull()
+
+# con pull ahora es un vector y no una base de datos
+
 c(crudo         = mean(oc, na.rm = TRUE),
   sin_999       = mean(oc[oc != 999], na.rm = TRUE),
-  sin_999_ni_888 = mean(oc[!(oc %in% c(888, 999))], na.rm = TRUE))
+  sin_999_ni_888 = mean(oc[!(oc %in% c(888, 999))], na.rm = TRUE)
+  )
 
 # ✅ Deberías ver: 40.33 | 40.14 | 38.05
 #
@@ -203,11 +242,11 @@ c(crudo         = mean(oc, na.rm = TRUE),
 # el máximo, hay que mirar la distribución completa.
 
 # TODO: convierte AMBOS centinelas en NA de verdad, con na_if().
-empleo <- empleo |>
-  mutate(habituales = na_if(habituales, ____),
-         habituales = na_if(habituales, ____))
+empleo_limpia <- empleo |>
+  mutate(habituales_ = na_if(habituales, 999),
+         habituales_ = na_if(habituales_, 888))
 
-max(empleo$habituales, na.rm = TRUE)
+max(empleo_limpia$habituales_, na.rm = TRUE)
 
 # ✅ Deberías ver: 126
 #
@@ -225,7 +264,7 @@ max(empleo$habituales, na.rm = TRUE)
 
 # TODO: quédate solo con la fuerza de trabajo.
 ft <- empleo |>
-  filter(situacion == "Ocupado" ____ situacion == "Desocupado")
+  filter(situacion == "Ocupado" | situacion == "Desocupado")
 
 nrow(ft)
 
@@ -235,14 +274,19 @@ nrow(ft)
 round(100 * sum(ft$situacion == "Desocupado") / nrow(ft), 2)
 
 # ✅ Deberías ver: 9.54
+# sin el factor de expansión
 
 # --- Segundo cálculo: contando PERSONAS ---
 # Cada fila representa a un número distinto de chilenos. fact_cal lo dice.
 # TODO: en vez de contar filas, SUMA los factores de expansión.
-desocupados <- sum(ft$fact_cal[ft$situacion == "____"])
-fuerza      <- sum(ft$____)
+desocupados <- sum(ft$fact_cal[ft$situacion == "Desocupado"])
+fuerza      <- sum(ft$fact_cal)
 
+
+round(100 * sum(ft$fact_cal[ft$situacion == "Desocupado"]) / sum(ft$fact_cal), 2)
 round(100 * desocupados / fuerza, 2)
+
+
 format(round(fuerza), big.mark = ".", decimal.mark = ",")
 
 # ✅ Deberías ver: 9.53  y  10.295.061
@@ -266,12 +310,13 @@ regiones <- c("Tarapacá", "Antofagasta", "Atacama", "Coquimbo", "Valparaíso",
 # TODO: completa la tabla por región, ponderando.
 ft |>
   mutate(region_txt = regiones[region]) |>
-  group_by(____) |>
+  group_by(region_txt) |>
   summarise(
     n_muestra = n(),
+    n_total = sum(fact_cal),
     tasa = round(100 * sum(fact_cal[situacion == "Desocupado"]) / sum(fact_cal), 2)
   ) |>
-  arrange(desc(____))
+  arrange(desc(tasa))
 
 # ✅ Deberías ver a Ñuble en el primer lugar, con 10,96 %, y a Aysén en el
 #    último, con 3,96 %. (La tabla muestra 11.0: es 10,96 redondeado.)
@@ -283,7 +328,7 @@ ft |>
 
 # TODO: la misma tabla, pero por sexo.
 ft |>
-  group_by(____) |>
+  group_by(sexo) |>
   summarise(n = n(),
             tasa = round(100 * sum(fact_cal[situacion == "Desocupado"]) / sum(fact_cal), 2))
 
@@ -293,7 +338,7 @@ ft |>
 #       Aysén (region 11) usando UN solo mes de entrevista cada vez.
 ft |>
   filter(region == 11) |>
-  group_by(____) |>                # ¿qué columna dice en qué mes entrevistaron?
+  group_by("Aysén") |>                # ¿qué columna dice en qué mes entrevistaron?
   summarise(n = n(),
             tasa = round(100 * sum(fact_cal[situacion == "Desocupado"]) / sum(fact_cal), 2))
 
