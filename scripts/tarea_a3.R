@@ -1,7 +1,10 @@
 
 # Constanza Pinilla 
 # Septiembre 2026
-# ¿Qué hace?:
+# ¿Qué hace?: lee y limpia la base de la ENE, conserva las variables necesarias,
+# crea grupos de edad y clasifica la situación laboral. También revisa los valores
+# faltantes, calcula la tasa de desocupación sin ponderar y con fact_cal, 
+# responde la pregunta de investigación y guarda la base procesada.
 
 #1 Pregunta: 
 # ¿Existen diferencias en la tasa de desocupación según el grupo etario de las 
@@ -60,15 +63,13 @@ sin_na <- na.omit(desocupacion_edad)
 nrow(sin_na) # 82641
 table(sin_na$activ)
 
-# na.omit() borró a los 15305 desocupados, la tasa de desocupación 
-# de esa tabla es 0 %, eliminar filas con faltantes borró exactamente al grupo 
-# que queríamos estudiar.
+# na.omit() borró a 15305 personas fuera de la población en edad de trabajar.
 
 #5 por hacer
 sort(table(desocupacion_edad$activ), decreasing = TRUE)
 sort(table(desocupacion_edad$edad), decreasing = TRUE)
 sort(table(desocupacion_edad$fact_cal), decreasing = TRUE)
-#  no se ven variables centinelas
+#  no se ven variables centinelas y no hubo recodificación.
 #6
 desocupacion_edad |>
   filter(!is.na(grupo_edad), !is.na(activ)) |>
@@ -97,7 +98,7 @@ desocupacion_edad |>
 # ya que el factor de expansión permite que los resultados representen
 # a la población objetivo de la ENE
 
-#7
+#7 con fact_cal
 
 # El grupo de 25-34 años presenta 310.134 desocupados, seguido por el grupo de 
 # 35-44 años, con 207.304. En el grupo de 15-24 años se registran 167.334 desocupados,
@@ -140,5 +141,6 @@ file.exists("data/processed/ene_a3.csv")
 # de expansión, permitiendo que los resultados representaran a la población.
 
 # 7. Filas iniciales y finales:
-# Filas iniciales: nrow(ene)
-# Filas finales: nrow(desocupacion_edad)
+# Filas iniciales: nrow(ene) 97946
+# Filas finales: nrow(desocupacion_edad) 97946
+
