@@ -66,7 +66,9 @@ table(sin_na$activ)
 
 #5 por hacer
 sort(table(desocupacion_edad$activ), decreasing = TRUE)
-
+sort(table(desocupacion_edad$edad), decreasing = TRUE)
+sort(table(desocupacion_edad$fact_cal), decreasing = TRUE)
+#  no se ven variables centinelas
 #6
 desocupacion_edad |>
   filter(!is.na(grupo_edad), !is.na(activ)) |>
@@ -108,6 +110,7 @@ desocupacion_edad |>
 #8
 dir.create("data/processed", showWarnings = FALSE)
 write.csv(desocupacion_edad, "data/processed/ene_a3.csv", row.names = FALSE)
+file.exists("data/processed/ene_a3.csv")
 
 # bitácora
 
@@ -130,18 +133,12 @@ write.csv(desocupacion_edad, "data/processed/ene_a3.csv", row.names = FALSE)
 
 # 5. Centinela revisar
 # Se revisaron los valores de las variables mediante tablas de frecuencia
-# para identificar posibles valores centinela. Los valores encontrados
-# fueron revisados antes de realizar cualquier recodificación.
+# para identificar posibles valores centinela, no se encontraron valores.
 
-# 6. Efecto de los centinelas:
-# Los valores identificados como centinelas fueron tratados como NA
-# cuando correspondía según el manual de la ENE y se comparó el resultado
-# de la estadística antes y después de la limpieza.
-
-# 7. Ponderación:
+# 6. Ponderación:
 # Para obtener los resultados finales se utilizó fact_cal como factor
 # de expansión, permitiendo que los resultados representaran a la población.
 
-# 8. Filas iniciales y finales:
+# 7. Filas iniciales y finales:
 # Filas iniciales: nrow(ene)
 # Filas finales: nrow(desocupacion_edad)
