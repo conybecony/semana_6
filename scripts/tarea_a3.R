@@ -65,7 +65,7 @@ table(sin_na$activ)
 
 # na.omit() borró a 15305 personas fuera de la población en edad de trabajar.
 
-#5 por hacer
+#5 
 sort(table(desocupacion_edad$activ), decreasing = TRUE)
 sort(table(desocupacion_edad$edad), decreasing = TRUE)
 sort(table(desocupacion_edad$fact_cal), decreasing = TRUE)
